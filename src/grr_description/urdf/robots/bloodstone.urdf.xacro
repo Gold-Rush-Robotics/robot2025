@@ -1,0 +1,124 @@
+<?xml version="1.0" ?>
+<robot name="bloodstone" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+
+  <!-- Include Files -->
+  <xacro:include filename="$(find grr_description)/urdf/util/macros.xacro" />
+  <xacro:include filename="$(find grr_description)/urdf/util/materials.xacro" />
+  <xacro:include filename="$(find grr_description)/urdf/parts/chassis.xacro"/>
+  <xacro:include filename="$(find grr_description)/urdf/parts/mecanum_wheel.xacro"/>
+  <xacro:include filename="$(find grr_description)/urdf/parts/mecanum_roller.xacro"/>
+  <xacro:include filename="$(find grr_description)/urdf/parts/small_package_grabber.xacro"/>
+  <xacro:include filename="$(find grr_description)/urdf/parts/small_package_sweeper.xacro"/>
+  <xacro:include filename="$(find grr_description)/urdf/parts/bridge.xacro"/>
+  <xacro:include filename="$(find grr_description)/urdf/parts/lidar.xacro"/>
+  <xacro:include filename="$(find grr_description)/urdf/parts/zed_cam.xacro"/>
+  <xacro:include filename="$(find grr_description)/urdf/parts/usb_camera.xacro"/>
+  <xacro:include filename="$(find grr_description)/urdf/control/drive.xacro"/>
+
+
+  <!-- Properties -->
+  <xacro:property name="chassis_length" value="0.18" />
+  <xacro:property name="chassis_width" value="0.33" />
+  <xacro:property name="chassis_height" value="0.135" />
+  <xacro:property name="chassis_weight" value="2.45" />
+
+  <xacro:property name="wheel_radius" value="${0.0375-0.01497/2}" />
+  <xacro:property name="wheel_thickness" value="0.042" />
+  <xacro:property name="wheel_weight" value="0.136" />
+  <xacro:property name="wheel_offset" value="0" />
+
+  <xacro:property name="wheel_joint_pos_x" value="0.10075" />
+  <xacro:property name="wheel_joint_pos_y" value="0.10568" />
+  <xacro:property name="wheel_joint_pos_z" value="0.07793" />
+
+  <xacro:property name="roller_total" value="8" />
+  <xacro:property name="roller_middle_radius" value="${0.01621/2}" />
+  <xacro:property name="roller_second_radius" value="${0.01591/2}" />
+  <xacro:property name="roller_third_radius" value="${0.01497/2}" />
+  <xacro:property name="roller_cylinder_radius" value="0.0074" />
+  <xacro:property name="roller_length" value="0.0381" />
+
+  <xacro:property name="lidar_radius" value="0.035" />
+  <xacro:property name="lidar_length" value="0.025" />
+  <xacro:property name="lidar_joint_pos_y" value="-0.045" />
+
+
+  <!-- Assembly -->
+  <xacro:chassis
+    length="${chassis_length}"
+    width="${chassis_width}" 
+    height="${chassis_height}" 
+    mass="${chassis_weight}"
+  />
+
+  <xacro:mecanum_with_rollers
+    name="front_right"
+    type="1"
+    radius="${wheel_radius}" 
+    width="${wheel_thickness}"
+    flip="${pi/2}"
+    pos_x="${wheel_joint_pos_x + wheel_offset}" 
+    pos_y="${wheel_joint_pos_y}" 
+    pos_z="-${0}"
+    mass="${wheel_weight}"
+  />
+
+  <xacro:mecanum_with_rollers
+    name="rear_left"
+    type="1"
+    radius="${wheel_radius}" 
+    width="${wheel_thickness}"
+    flip="-${pi/2}"
+    pos_x="-${wheel_joint_pos_x + wheel_offset}" 
+    pos_y="-${wheel_joint_pos_y}" 
+    pos_z="-${0}" 
+    mass="${wheel_weight}"
+  />
+
+  <xacro:mecanum_with_rollers
+    name="front_left"
+    type="2"
+    radius="${wheel_radius}" 
+    width="${wheel_thickness}"
+    flip="${pi/2}"
+    pos_x="-${wheel_joint_pos_x + wheel_offset}" 
+    pos_y="${wheel_joint_pos_y}" 
+    pos_z="-${0}" 
+    mass="${wheel_weight}"
+  /> 
+
+  <xacro:mecanum_with_rollers
+    name="rear_right"
+    type="2"
+    radius="${wheel_radius}" 
+    width="${wheel_thickness}"
+    flip="-${pi/2}"
+    pos_x="${wheel_joint_pos_x + wheel_offset}" 
+    pos_y="-${wheel_joint_pos_y}" 
+    pos_z="-${0}" 
+    mass="${wheel_weight}"
+  /> 
+  <xacro:small_package_grabber
+    parent="chassis_link"
+    origin="-0.03 0.1 0.03"
+  />
+  <xacro:small_package_sweeper
+    parent="chassis_link"
+    origin="-0.09 -0.14 0.07"
+  />
+  <xacro:bridge
+    parent="chassis_link"
+    origin="0.0 -0.08 0.145"
+  />
+  <!-- <xacro:lidar
+    radius="${lidar_radius}"
+    length="${lidar_length}"
+    pos_y="${lidar_joint_pos_y}"
+  /> -->
+
+  <!-- <xacro:zed_camera parent="chassis_link">
+    <origin xyz="0 0.15 0" rpy="0 0 ${pi/2}" />
+  </xacro:zed_camera> -->
+
+</robot>
