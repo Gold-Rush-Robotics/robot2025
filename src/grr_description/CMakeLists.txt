@@ -15,6 +15,10 @@ install(
   DIRECTORY  meshes urdf
   DESTINATION share/${PROJECT_NAME}
 )
+install(
+  FILES grreg.urdf
+  DESTINATION share/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

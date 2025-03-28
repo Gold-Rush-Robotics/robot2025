@@ -7,7 +7,6 @@ Panels:
         - /Global Options1
         - /Status1
         - /RobotModel1
-        - /RobotModel1/Status1
       Splitter Ratio: 0.5
     Tree Height: 555
   - Class: rviz_common/Selection
@@ -52,7 +51,7 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz_default_plugins/RobotModel
       Collision Enabled: false
-      Description File: /workspaces/DevEnv/repos/Robot2023/src/grr_description/bloodstone.urdf
+      Description File: /workspace/DevEnv/jazzy_ws/src/robot2025/src/grr_description/grreg.urdf
       Description Source: File
       Description Topic:
         Depth: 5
@@ -71,37 +70,7 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        bridge_holder_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        bridge_latch_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        camera_1_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        camera_2_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        camera_stand_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         chassis_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        color_sensor_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -196,7 +165,32 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        grr_brain_link:
+        intake_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        intake_roller_1_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        intake_roller_2_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_bin_grabber_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_bin_grabber_finger_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_bin_grabber_pivot_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -291,46 +285,56 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        small_package_grabber_link:
+        right_bin_grabber_base_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        small_package_grabber_roller_1_link:
+        right_bin_grabber_finger_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        small_package_grabber_roller_2_link:
+        right_bin_grabber_pivot_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        small_package_grabber_roller_3_link:
+        sorter_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        small_package_grabber_roller_4_link:
+        sorter_turntable_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        small_package_sweeper_link:
+        zed21_camera_center:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        small_package_sweeper_roller_link:
+        zed21_camera_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
-        small_package_sweeper_servo_link:
+        zed21_left_camera_frame:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
+        zed21_left_camera_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        zed21_right_camera_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        zed21_right_camera_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
       Mass Properties:
         Inertia: false
         Mass: false
@@ -385,7 +389,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 0.880715548992157
+      Distance: 0.5833504796028137
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -400,10 +404,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.4203987121582031
+      Pitch: 1.014797568321228
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.5604003667831421
+      Yaw: 0.8204032182693481
     Saved: ~
 Window Geometry:
   Displays:
@@ -421,5 +425,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1200
-  X: 70
-  Y: 60
+  X: 551
+  Y: 61

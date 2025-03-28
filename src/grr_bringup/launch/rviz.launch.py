@@ -16,10 +16,15 @@ def generate_launch_description():
 
     # Process the URDF file
     pkg_path = os.path.join(get_package_share_directory('grr_description'))
-    xacro_file = os.path.join(pkg_path,'urdf', 'robots','bloodstone.urdf.xacro')
+    xacro_file = os.path.join(pkg_path,'urdf', 'robots','grreg.urdf.xacro')
     grr_description_config = xacro.process_file(xacro_file)
+    source_code_path = os.path.abspath(os.path.join(pkg_path, "../../../../src/robot2025/src/grr_description"))
 
-    print(grr_description_config.toxml())
+    urdf_save_path = os.path.join(source_code_path, "grreg.urdf")
+
+    with open(urdf_save_path, 'w') as f:
+        f.write(grr_description_config.toxml())
+    # Create a robot_state_publisher node
     
     # Create a robot_state_publisher node
     params = {'robot_description': grr_description_config.toxml(), 'use_sim_time': use_sim_time}
