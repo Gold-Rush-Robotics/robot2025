@@ -85,8 +85,11 @@ private:
   // Parameters for the DiffBot simulation
   double hw_start_sec_;
   double hw_stop_sec_;
+  int can_socket_; 
 
   // Store the command for the simulated robot
+  rclcpp::Node::SharedPtr node_;
+
   std::vector<double> hw_commands_velocity_;
   std::vector<double> hw_commands_effort_;
   std::vector<double> hw_state_positions_;

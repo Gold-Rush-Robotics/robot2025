@@ -26,7 +26,7 @@
   <xacro:property name="wheel_weight" value="0.136" />
   <xacro:property name="wheel_offset" value="0" />
 
-  <xacro:property name="wheel_joint_pos_x" value="0.10075" />
+  <xacro:property name="wheel_joint_pos_x" value="0.09" />
   <xacro:property name="wheel_joint_pos_y" value="0.10075" />
   <xacro:property name="wheel_joint_pos_z" value="0.07793" />
   
@@ -45,11 +45,11 @@
   </xacro:chassis>
 
   <xacro:mecanum_with_rollers
-    name="front_right"
+    name="front_left"
     type="1"
     radius="${wheel_radius}"  
     width="${wheel_thickness}"
-    flip="${pi/2}"
+    flip="-${pi/2}"
     pos_x="${wheel_joint_pos_x + wheel_offset}" 
     pos_y="${wheel_joint_pos_y}" 
     pos_z="-${0}"
@@ -57,7 +57,7 @@
   />
 
   <xacro:mecanum_with_rollers
-    name="rear_left"
+    name="rear_right"
     type="1"
     radius="${wheel_radius}" 
     width="${wheel_thickness}"
@@ -69,11 +69,11 @@
   />
 
   <xacro:mecanum_with_rollers
-    name="front_left"
+    name="rear_left"
     type="2"
     radius="${wheel_radius}" 
     width="${wheel_thickness}"
-    flip="${pi/2}"
+    flip="-${pi/2}"
     pos_x="-${wheel_joint_pos_x + wheel_offset}" 
     pos_y="${wheel_joint_pos_y}" 
     pos_z="-${0}" 
@@ -81,7 +81,7 @@
   /> 
 
   <xacro:mecanum_with_rollers
-    name="rear_right"
+    name="front_right"
     type="2"
     radius="${wheel_radius}" 
     width="${wheel_thickness}"

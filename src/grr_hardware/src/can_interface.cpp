@@ -19,19 +19,19 @@ using std::placeholders::_1;
 
 namespace grr_hardware
 {
-hardware_interface::CallbackReturn IsaacDriveHardware::on_init(const hardware_interface::HardwareInfo & info)
+hardware_interface::CallbackReturn CanInterface::on_init(const hardware_interface::HardwareInfo & info)
 {
 
   // rmw_qos_profile_t custom_qos_profile = rmw_qos_profile_default;
   // custom_qos_profile.depth = 7;
 
-  node_ = rclcpp::Node::make_shared("isaac_hardware_interface");
+  node_ = rclcpp::Node::make_shared("can_interface");
 
   // CAN socket setup
   can_socket_ = socket(PF_CAN, SOCK_RAW, CAN_RAW);
   if (can_socket_ < 0)
   {
-    RCLCPP_FATAL(rclcpp::get_logger("IsaacDriveHardware"), "Failed to create CAN socket");
+    RCLCPP_FATAL(rclcpp::get_logger("CanInterface"), "Failed to create CAN socket");
     return CallbackReturn::ERROR;
   }
 
@@ -39,7 +39,7 @@ hardware_interface::CallbackReturn IsaacDriveHardware::on_init(const hardware_in
   std::strcpy(ifr.ifr_name, "can0");  // Replace "can0" with your CAN interface name
   if (ioctl(can_socket_, SIOCGIFINDEX, &ifr) < 0)
   {
-    RCLCPP_FATAL(rclcpp::get_logger("IsaacDriveHardware"), "Failed to get CAN interface index");
+    RCLCPP_FATAL(rclcpp::get_logger("CanInterface"), "Failed to get CAN interface index");
     return CallbackReturn::ERROR;
   }
 
@@ -50,11 +50,11 @@ hardware_interface::CallbackReturn IsaacDriveHardware::on_init(const hardware_in
 
   if (bind(can_socket_, (struct sockaddr *)&addr, sizeof(addr)) < 0)
   {
-    RCLCPP_FATAL(rclcpp::get_logger("IsaacDriveHardware"), "Failed to bind CAN socket");
+    RCLCPP_FATAL(rclcpp::get_logger("CanInterface"), "Failed to bind CAN socket");
     return CallbackReturn::ERROR;
   }
 
-  RCLCPP_INFO(rclcpp::get_logger("IsaacDriveHardware"), "CAN socket initialized successfully");
+  RCLCPP_INFO(rclcpp::get_logger("CanInterface"), "CAN socket initialized successfully");
 
 
 
@@ -77,7 +77,7 @@ hardware_interface::CallbackReturn IsaacDriveHardware::on_init(const hardware_in
     if (joint.command_interfaces.size() != 1)
     {
       RCLCPP_FATAL(
-        rclcpp::get_logger("IsaacDriveHardware"),
+        rclcpp::get_logger("CanInterface"),
         "Joint '%s' has %zu command interfaces found. 1 expected.", joint.name.c_str(),
         joint.command_interfaces.size());
       return CallbackReturn::ERROR;
@@ -86,7 +86,7 @@ hardware_interface::CallbackReturn IsaacDriveHardware::on_init(const hardware_in
     if (joint.command_interfaces[0].name != hardware_interface::HW_IF_VELOCITY && joint.command_interfaces[0].name != hardware_interface::HW_IF_EFFORT)
     {
       RCLCPP_FATAL(
-        rclcpp::get_logger("IsaacDriveHardware"),
+        rclcpp::get_logger("CanInterface"),
         "Joint '%s' have %s command interfaces found. '%s' expected.", joint.name.c_str(),
         joint.command_interfaces[0].name.c_str(), hardware_interface::HW_IF_VELOCITY);
       return CallbackReturn::ERROR;
@@ -95,7 +95,7 @@ hardware_interface::CallbackReturn IsaacDriveHardware::on_init(const hardware_in
     if (joint.state_interfaces.size() != 2)
     {
       RCLCPP_FATAL(
-        rclcpp::get_logger("IsaacDriveHardware"),
+        rclcpp::get_logger("CanInterface"),
         "Joint '%s' has %zu state interface. 2 expected.", joint.name.c_str(),
         joint.state_interfaces.size());
       return CallbackReturn::ERROR;
@@ -104,7 +104,7 @@ hardware_interface::CallbackReturn IsaacDriveHardware::on_init(const hardware_in
     if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION)
     {
       RCLCPP_FATAL(
-        rclcpp::get_logger("IsaacDriveHardware"),
+        rclcpp::get_logger("CanInterface"),
         "Joint '%s' have '%s' as first state interface. '%s' expected.", joint.name.c_str(),
         joint.state_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION);
       return CallbackReturn::ERROR;
@@ -113,7 +113,7 @@ hardware_interface::CallbackReturn IsaacDriveHardware::on_init(const hardware_in
     if (joint.state_interfaces[1].name != hardware_interface::HW_IF_VELOCITY)
     {
       RCLCPP_FATAL(
-        rclcpp::get_logger("IsaacDriveHardware"),
+        rclcpp::get_logger("CanInterface"),
         "Joint '%s' have '%s' as second state interface. '%s' expected.", joint.name.c_str(),
         joint.state_interfaces[1].name.c_str(), hardware_interface::HW_IF_VELOCITY);
       return CallbackReturn::ERROR;
@@ -125,7 +125,7 @@ hardware_interface::CallbackReturn IsaacDriveHardware::on_init(const hardware_in
 
 
 
-std::vector<hardware_interface::StateInterface> IsaacDriveHardware::export_state_interfaces()
+std::vector<hardware_interface::StateInterface> CanInterface::export_state_interfaces()
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
   for (auto i = 0u; i < info_.joints.size(); i++)
@@ -141,7 +141,7 @@ std::vector<hardware_interface::StateInterface> IsaacDriveHardware::export_state
 
 
 
-std::vector<hardware_interface::CommandInterface> IsaacDriveHardware::export_command_interfaces()
+std::vector<hardware_interface::CommandInterface> CanInterface::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
   for (auto i = 0u; i < info_.joints.size(); i++)
@@ -158,7 +158,7 @@ std::vector<hardware_interface::CommandInterface> IsaacDriveHardware::export_com
     }
     else{
       RCLCPP_FATAL(
-        rclcpp::get_logger("IsaacDriveHardware"),
+        rclcpp::get_logger("CanInterface"),
         "Joint '%s' have '%s' as command interface. '%s' or '%s' expected.", info_.joints[i].name.c_str(),
         info_.joints[i].command_interfaces[0].name.c_str(), hardware_interface::HW_IF_VELOCITY, hardware_interface::HW_IF_EFFORT);
       throw std::runtime_error("Invalid command interface");
@@ -171,10 +171,10 @@ std::vector<hardware_interface::CommandInterface> IsaacDriveHardware::export_com
 
 
 
-hardware_interface::CallbackReturn IsaacDriveHardware::on_activate(
+hardware_interface::CallbackReturn CanInterface::on_activate(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
-  RCLCPP_INFO(rclcpp::get_logger("IsaacDriveHardware"), "Activating ...please wait...");
+  RCLCPP_INFO(rclcpp::get_logger("CanInterface"), "Activating ...please wait...");
 
   // set some default values
   for (auto i = 0u; i < hw_state_positions_.size(); i++)
@@ -189,21 +189,19 @@ hardware_interface::CallbackReturn IsaacDriveHardware::on_activate(
     joint_names_map_[joint_names_[i]] = i + 1; // ADD 1 to differentiate null key
   }
 
-  subscriber_is_active_ = true;
 
-  RCLCPP_INFO(rclcpp::get_logger("IsaacDriveHardware"), "Successfully activated!");
+  RCLCPP_INFO(rclcpp::get_logger("CanInterface"), "Successfully activated!");
 
   return CallbackReturn::SUCCESS;
 }
 
 
 
-hardware_interface::CallbackReturn IsaacDriveHardware::on_deactivate(
+hardware_interface::CallbackReturn CanInterface::on_deactivate(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
-  RCLCPP_INFO(rclcpp::get_logger("IsaacDriveHardware"), "Deactivating ...please wait...");
-  subscriber_is_active_ = false;
-  RCLCPP_INFO(rclcpp::get_logger("IsaacDriveHardware"), "Successfully deactivated!");
+  RCLCPP_INFO(rclcpp::get_logger("CanInterface"), "Deactivating ...please wait...");
+  RCLCPP_INFO(rclcpp::get_logger("CanInterface"), "Successfully deactivated!");
 
   return CallbackReturn::SUCCESS;
 }
@@ -211,61 +209,52 @@ hardware_interface::CallbackReturn IsaacDriveHardware::on_deactivate(
 
 // ||                        ||
 // \/ THE STUFF THAT MATTERS \/
-double IsaacDriveHardware::ticksToMeters(double ticks)
+
+hardware_interface::return_type grr_hardware::CanInterface::read(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
-  return ticks;
-}
-hardware_interface::return_type grr_hardware::IsaacDriveHardware::read(const rclcpp::Time & time, const rclcpp::Duration & period)
-{
-    struct can_frame frame;
-    ssize_t nbytes = read(can_socket_, &frame, sizeof(struct can_frame));
-  
-    if (nbytes < 0)
-    {
-      RCLCPP_WARN(rclcpp::get_logger("IsaacDriveHardware"), "Failed to read from CAN socket");
-      return hardware_interface::return_type::ERROR;
-    }
-  
-    if (nbytes == sizeof(struct can_frame))
-    {
-      // Example: Update hardware state based on CAN frame data
-      if (frame.can_id == 0x123)  // Replace with your CAN ID
-      {
-        hw_state_positions_[0] = frame.data[0];  // Example: Map CAN data to position
-        hw_state_velocities_[0] = frame.data[1]; // Example: Map CAN data to velocity
-      }
-    }
-  
-    return hardware_interface::return_type::OK;
-}
-
-
-
-hardware_interface::return_type grr_hardware::IsaacDriveHardware::write(const rclcpp::Time & time, const rclcpp::Duration & period)
-{
-  // RCLCPP_INFO(rclcpp::get_logger("IsaacDriveHardware"), "Velocity: %f", hw_commands_[0]);
-
   struct can_frame frame;
-  frame.can_id = 0x123;  // Replace with your CAN ID
-  frame.can_dlc = 2;     // Data length
-  frame.data[0] = static_cast<uint8_t>(hw_commands_velocity_[0]);  // Example: Map velocity command
-  frame.data[1] = static_cast<uint8_t>(hw_commands_effort_[0]);    // Example: Map effort command
-  frame.data[2] = static_cast<uint8_t>(hw_commands_velocity_[1]);  // Example: Map velocity command
-  ssize_t nbytes = write(can_socket_, &frame, sizeof(struct can_frame));
+  ssize_t nbytes = ::read(can_socket_, &frame, sizeof(struct can_frame));  // Call global read()
 
-  if (nbytes != sizeof(struct can_frame))
+  if (nbytes < 0)
   {
-    RCLCPP_WARN(rclcpp::get_logger("IsaacDriveHardware"), "Failed to write to CAN socket");
+    RCLCPP_WARN(rclcpp::get_logger("CanInterface"), "Failed to read from CAN socket");
     return hardware_interface::return_type::ERROR;
+  }
+
+  if (nbytes == sizeof(struct can_frame))
+  {
+    // Example: Update hardware state based on CAN frame data
+    if (frame.can_id == 0x123)  // Replace with your CAN ID
+    {
+      hw_state_positions_[0] = frame.data[0];  // Map CAN data to position
+      hw_state_velocities_[0] = frame.data[1]; // Map CAN data to velocity
+    }
   }
 
   return hardware_interface::return_type::OK;
 }
 
-}  // namespace grr_hardware
+hardware_interface::return_type grr_hardware::CanInterface::write(const rclcpp::Time & time, const rclcpp::Duration & period)
+{
+  struct can_frame frame;
+  frame.can_id = 0x123;  // Replace with your CAN ID
+  frame.can_dlc = 2;     // Data length
+  frame.data[0] = static_cast<uint8_t>(hw_commands_velocity_[0]);  // Map velocity command
+  frame.data[1] = static_cast<uint8_t>(hw_commands_effort_[0]);      // Map effort command
+  ssize_t nbytes = ::write(can_socket_, &frame, sizeof(struct can_frame));  // Call global write()
+
+  if (nbytes != sizeof(struct can_frame))
+  {
+    RCLCPP_WARN(rclcpp::get_logger("CanInterface"), "Failed to write to CAN socket");
+    return hardware_interface::return_type::ERROR;
+  }
+
+  return hardware_interface::return_type::OK;
+}}
+
 
 
 
 #include "pluginlib/class_list_macros.hpp"
 PLUGINLIB_EXPORT_CLASS(
-  grr_hardware::IsaacDriveHardware, hardware_interface::SystemInterface)
+  grr_hardware::CanInterface, hardware_interface::SystemInterface)

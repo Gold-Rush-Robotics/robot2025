@@ -18,7 +18,7 @@ def generate_launch_description():
     pkg_path = os.path.join(get_package_share_directory('grr_description'))
     xacro_file = os.path.join(pkg_path,'urdf', 'robots','grreg.urdf.xacro')
     grr_description_config = xacro.process_file(xacro_file)
-    source_code_path = os.path.abspath(os.path.join(pkg_path, "../../../../src/robot2025/src/grr_description"))
+    source_code_path = os.path.abspath(os.path.join(pkg_path, "../../../../robot2025/src/grr_description"))
 
     urdf_save_path = os.path.join(source_code_path, "grreg.urdf")
 

@@ -40,11 +40,13 @@
         </geometry>
         </collision>
     </link>
-    <joint name="${prefix}_bin_grabber_pivot_joint" type="continuous">
+    <joint name="${prefix}_bin_grabber_pivot_joint" type="revolute">
         <parent link="${prefix}_bin_grabber_base_link"/>
         <child link="${prefix}_bin_grabber_pivot_link"/>
         <origin xyz="0.0 0.005 0" rpy="0 0 0"/>
-        <axis xyz="0 0 1"/>
+        <axis xyz="0 1 0"/>
+        <limit lower="-0.35" upper="0.044" effort="10" velocity="0.5"/>
+
     </joint>
     <link name="${prefix}_bin_grabber_finger_link">
         <visual>
@@ -61,11 +63,13 @@
         </geometry>
         </collision>
     </link>
-    <joint name="${prefix}_bin_grabber_finger_joint" type="continuous">
+    <joint name="${prefix}_bin_grabber_finger_joint" type="revolute">
         <parent link="${prefix}_bin_grabber_pivot_link"/>
         <child link="${prefix}_bin_grabber_finger_link"/>
         <origin xyz="${0.01*reverse} 0.002 0.06" rpy="0 0 0"/>
-        <axis xyz="0 0 1"/>
+        <axis xyz="0 ${reverse} 0"/>
+        <!-- add joint limits -->
+        <limit lower="-3.14" upper="0.39" effort="10" velocity="0.5"/>
     </joint>
 </xacro:macro>
 </robot>
