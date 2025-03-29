@@ -7,8 +7,10 @@ int pos = 0;
 
 void setup() {
   // put your setup code here, to run once:
-  myServo1.attach(9);
+  myServo1.attach(3);
+  
   myServo1.write(0);
+
 }
 
 void loop() {

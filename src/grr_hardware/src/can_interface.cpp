@@ -19,57 +19,134 @@ using std::placeholders::_1;
 
 namespace grr_hardware
 {
-hardware_interface::CallbackReturn CanInterface::on_init(const hardware_interface::HardwareInfo & info)
-{
-
-  // rmw_qos_profile_t custom_qos_profile = rmw_qos_profile_default;
-  // custom_qos_profile.depth = 7;
-
-  node_ = rclcpp::Node::make_shared("can_interface");
-
-  // CAN socket setup
-  can_socket_ = socket(PF_CAN, SOCK_RAW, CAN_RAW);
-  if (can_socket_ < 0)
+  hardware_interface::CallbackReturn CanInterface::on_init(const hardware_interface::HardwareInfo & info)
   {
-    RCLCPP_FATAL(rclcpp::get_logger("CanInterface"), "Failed to create CAN socket");
-    return CallbackReturn::ERROR;
-  }
+    // Save the hardware info for later use
+    info_ = info;
+  
+    // Create a ROS node (if you don't have one already)
+    node_ = rclcpp::Node::make_shared("can_interface");
 
-  struct ifreq ifr;
-  std::strcpy(ifr.ifr_name, "can0");  // Replace "can0" with your CAN interface name
-  if (ioctl(can_socket_, SIOCGIFINDEX, &ifr) < 0)
+    recorded_serial_numbers_.resize(10, 0);          // or use a different default value/size
+    serial_numbers_configured_.resize(10, 0);
+  
+    // Initialize CAN socket (as before)
+    can_socket_ = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+    if (can_socket_ < 0)
+    {
+      RCLCPP_FATAL(rclcpp::get_logger("CanInterface"), "Failed to create CAN socket");
+      return CallbackReturn::ERROR;
+    }
+    // ... CAN socket setup code ...
+  
+    // Now initialize your new parameters from the hardware_parameters map
+    if(info_.hardware_parameters.find("teensy1_serial_number") != info_.hardware_parameters.end())
+    {
+      teensy1_serial_number_ = info_.hardware_parameters.at("teensy1_serial_number");
+      RCLCPP_INFO(node_->get_logger(), "Teensy1 serial number: %s", teensy1_serial_number_.c_str());
+    }
+    else
+    {
+      RCLCPP_WARN(node_->get_logger(), "teensy1_serial_number parameter not found");
+    }
+  
+    // For vector parameters (assuming a comma-separated string)
+    if(info_.hardware_parameters.find("teensy1_joint_names") != info_.hardware_parameters.end())
+    {
+      std::string joint_list = info_.hardware_parameters.at("teensy1_joint_names");
+      std::stringstream ss(joint_list);
+      std::string joint;
+      while(std::getline(ss, joint, ','))
+      {
+        // Trim whitespace if necessary
+        teensy1_joint_names_.push_back(joint);
+      }
+      RCLCPP_INFO(node_->get_logger(), "Loaded %zu teensy1 joint names", teensy1_joint_names_.size());
+    }
+    else
+    {
+      RCLCPP_WARN(node_->get_logger(), "teensy1_joint_names parameter not found");
+    }
+  
+    if(info_.hardware_parameters.find("teensy2_serial_number") != info_.hardware_parameters.end())
+    {
+      teensy2_serial_number_ = info_.hardware_parameters.at("teensy2_serial_number");
+      RCLCPP_INFO(node_->get_logger(), "Teensy2 serial number: %s", teensy2_serial_number_.c_str());
+    }
+    else
+    {
+      RCLCPP_WARN(node_->get_logger(), "teensy2_serial_number parameter not found");
+    }
+  
+    if(info_.hardware_parameters.find("teensy2_joint_names") != info_.hardware_parameters.end())
+    {
+      std::string joint_list = info_.hardware_parameters.at("teensy2_joint_names");
+      std::stringstream ss(joint_list);
+      std::string joint;
+      while(std::getline(ss, joint, ','))
+      {
+        teensy2_joint_names_.push_back(joint);
+      }
+      RCLCPP_INFO(node_->get_logger(), "Loaded %zu teensy2 joint names", teensy2_joint_names_.size());
+    }
+    else
+    {
+      RCLCPP_WARN(node_->get_logger(), "teensy2_joint_names parameter not found");
+    }
+    for (const auto & joint_info : info_.joints)
   {
-    RCLCPP_FATAL(rclcpp::get_logger("CanInterface"), "Failed to get CAN interface index");
-    return CallbackReturn::ERROR;
+    // Use the joint name as a key; it's assumed that a parameter with this name exists
+    if (info_.hardware_parameters.find(joint_info.name) != info_.hardware_parameters.end())
+    {
+      std::string joint_param_str = info_.hardware_parameters.at(joint_info.name);
+      // Assume the string is of the form "DIR:1,PWM:2,SLP:7,FLT:8,ENC_OUTA:11,ENC_OUTB:12,CS:23"
+      JointParameters params;
+      std::stringstream ss(joint_param_str);
+      std::string token;
+      while(std::getline(ss, token, ','))
+      {
+        auto pos = token.find(':');
+        if (pos != std::string::npos)
+        {
+          std::string key = token.substr(0, pos);
+          std::string value = token.substr(pos + 1);
+          if (key == "DIR")
+            params.DIR = std::stoi(value);
+          else if (key == "PWM")
+            params.PWM = std::stoi(value);
+          else if (key == "SLP")
+            params.SLP = std::stoi(value);
+          else if (key == "FLT")
+            params.FLT = std::stoi(value);
+          else if (key == "ENC_OUTA")
+            params.ENC_OUTA = std::stoi(value);
+          else if (key == "ENC_OUTB")
+            params.ENC_OUTB = std::stoi(value);
+          else if (key == "CS")
+            params.CS = std::stoi(value);
+        }
+      }
+      // Store the parsed parameters in the joint_parameters_ map.
+      joint_parameters_[joint_info.name] = params;
+      RCLCPP_INFO(node_->get_logger(), "Loaded parameters for joint '%s': DIR=%d, PWM=%d, SLP=%d, FLT=%d, ENC_OUTA=%d, ENC_OUTB=%d, CS=%d",
+                  joint_info.name.c_str(), params.DIR, params.PWM, params.SLP,
+                  params.FLT, params.ENC_OUTA, params.ENC_OUTB, params.CS);
+    }
+    else
+    {
+      RCLCPP_WARN(node_->get_logger(), "No nested parameter found for joint '%s'", joint_info.name.c_str());
+    }
   }
+  
+    
+  
+    // Continue with the rest of on_init() (e.g., resizing state vectors etc.)
+    hw_state_positions_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+    hw_state_velocities_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+    hw_commands_velocity_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+    hw_commands_effort_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+    hw_commands_positions_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
 
-  struct sockaddr_can addr;
-  std::memset(&addr, 0, sizeof(addr));
-  addr.can_family = PF_CAN;
-  addr.can_ifindex = ifr.ifr_ifindex;
-
-  if (bind(can_socket_, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-  {
-    RCLCPP_FATAL(rclcpp::get_logger("CanInterface"), "Failed to bind CAN socket");
-    return CallbackReturn::ERROR;
-  }
-
-  RCLCPP_INFO(rclcpp::get_logger("CanInterface"), "CAN socket initialized successfully");
-
-
-
-  // INTERFACE SETUP
-  if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS)
-  {
-    return CallbackReturn::ERROR;
-  }
-
-  // hw_start_sec_ = stod(info_.hardware_parameters["example_param_hw_start_duration_sec"]);
-  // hw_stop_sec_ = stod(info_.hardware_parameters["example_param_hw_stop_duration_sec"]);
-  hw_state_positions_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_state_velocities_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_commands_velocity_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_commands_effort_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
 
   for (const hardware_interface::ComponentInfo & joint : info_.joints)
   {
@@ -156,6 +233,11 @@ std::vector<hardware_interface::CommandInterface> CanInterface::export_command_i
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
        info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_commands_effort_[i]));
     }
+    else if (info_.joints[i].command_interfaces[0].name == hardware_interface::HW_IF_POSITION )
+    {
+      command_interfaces.emplace_back(hardware_interface::CommandInterface(
+       info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_commands_positions_[i]));
+    }
     else{
       RCLCPP_FATAL(
         rclcpp::get_logger("CanInterface"),
@@ -185,6 +267,7 @@ hardware_interface::CallbackReturn CanInterface::on_activate(
       hw_state_velocities_[i] = 0;
       hw_commands_velocity_[i] = 0;
       hw_commands_effort_[i] = 0;
+      hw_commands_positions_[i] = 0;
     }
     joint_names_map_[joint_names_[i]] = i + 1; // ADD 1 to differentiate null key
   }
@@ -212,6 +295,7 @@ hardware_interface::CallbackReturn CanInterface::on_deactivate(
 
 hardware_interface::return_type grr_hardware::CanInterface::read(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
+  std::vector<uint16_t> recorded_serial_numbers;  // Replace with actual initialization if needed
   struct can_frame frame;
   ssize_t nbytes = ::read(can_socket_, &frame, sizeof(struct can_frame));  // Call global read()
 
@@ -224,37 +308,99 @@ hardware_interface::return_type grr_hardware::CanInterface::read(const rclcpp::T
   if (nbytes == sizeof(struct can_frame))
   {
     // Example: Update hardware state based on CAN frame data
-    if (frame.can_id == 0x123)  // Replace with your CAN ID
+    if (frame.can_id == HEARTBEAT)  // Replace with your CAN ID
     {
-      hw_state_positions_[0] = frame.data[0];  // Map CAN data to position
-      hw_state_velocities_[0] = frame.data[1]; // Map CAN data to velocity
+      std::string serial_number = "";
+      for (int i = 0; i < 8; i++) {
+        serial_number += char(frame.data[i]);
+      }
+      for (size_t i = 0; i < recorded_serial_numbers.size(); i++){
+        for (int i = 0;i<recorded_serial_numbers_.size();i++){
+          if (recorded_serial_numbers[i] == std::stoi(serial_number)){
+            RCLCPP_INFO(rclcpp::get_logger("CanInterface"), "Serial number already recorded");
+            return hardware_interface::return_type::OK;
+          }
+          else{
+            recorded_serial_numbers.push_back(std::stoi(serial_number));
+            RCLCPP_INFO(rclcpp::get_logger("CanInterface"), "Serial number recorded");
+          }
+        }
+      }
     }
-  }
+    if(frame.can_id == SENSORS){
+      //Get name of joint from buffer 8-24
+      std::string joint_name = "";
+      for (int i = 8; i < 24; i++) {
+        joint_name += char(frame.data[i]);
+      }
+      //Get joint value
+      double joint_value = 0;
+      for (int i = 24; i < 32; i++) {
+        joint_value += frame.data[i];
+      }
+      //Update joint state
+      if (joint_names_map_.find(joint_name) != joint_names_map_.end())
+      {
+        hw_state_positions_[joint_names_map_[joint_name]] = joint_value;
+      }
+    }
 
   return hardware_interface::return_type::OK;
+  }
 }
 
 hardware_interface::return_type grr_hardware::CanInterface::write(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
-  struct can_frame frame;
-  frame.can_id = 0x123;  // Replace with your CAN ID
-  frame.can_dlc = 2;     // Data length
-  frame.data[0] = static_cast<uint8_t>(hw_commands_velocity_[0]);  // Map velocity command
-  frame.data[1] = static_cast<uint8_t>(hw_commands_effort_[0]);      // Map effort command
-  ssize_t nbytes = ::write(can_socket_, &frame, sizeof(struct can_frame));  // Call global write()
-
-  if (nbytes != sizeof(struct can_frame))
-  {
-    RCLCPP_WARN(rclcpp::get_logger("CanInterface"), "Failed to write to CAN socket");
-    return hardware_interface::return_type::ERROR;
+  // Instead of using sizeof, use the vector's size:
+  if(serial_numbers_configured_.size() < recorded_serial_numbers_.size()){
+    struct can_frame frame;
+    frame.can_id = ASSIGN_ID;
+    frame.can_dlc = 39;
+    
+    // Copy serial numbers (assuming each serial number fits into one byte, adjust as needed)
+    for (size_t i = 0; i < 8 && i < serial_numbers_configured_.size(); i++) {
+      frame.data[i] = static_cast<uint8_t>(serial_numbers_configured_[i]);
+    }
+    
+    // For joint names, copy one character per slot (or you can copy multiple bytes if desired):
+    // Here we fill positions 8 through 23 with the first character of each joint name, or 0 if not available.
+    for (size_t i = 8; i < 24; i++) {
+      size_t joint_idx = i - 8;
+      if(joint_idx < joint_names_.size() && !joint_names_[joint_idx].empty()){
+        frame.data[i] = static_cast<uint8_t>(joint_names_[joint_idx][0]);
+      }
+      else{
+        frame.data[i] = 0;
+      }
+    }
+    
+    // For control type, we use the control_type_ vector.
+    // Make sure control_type_ is properly initialized (it should have at least (32-24)=8 elements)
+    for (size_t i = 24; i < 32; i++) {
+      size_t ctrl_idx = i - 24;
+      // If control_type_ isn’t large enough, fill with 0 or your default.
+      if(ctrl_idx < control_type_.size()){
+        frame.data[i] = control_type_[ctrl_idx];
+      } else {
+        frame.data[i] = 0;
+      }
+    }
+    
+    ssize_t nbytes = ::write(can_socket_, &frame, sizeof(struct can_frame));  // Call global write()
+    if (nbytes < 0)
+    {
+      RCLCPP_WARN(rclcpp::get_logger("CanInterface"), "Failed to write to CAN socket");
+      return hardware_interface::return_type::ERROR;
+    }
+    return hardware_interface::return_type::OK;
   }
+  else{
+    RCLCPP_INFO(rclcpp::get_logger("CanInterface"), "All serial numbers configured");
+    return hardware_interface::return_type::OK;
+  }
+}
 
-  return hardware_interface::return_type::OK;
-}}
-
-
-
-
+}  // namespace grr_hardware
 #include "pluginlib/class_list_macros.hpp"
 PLUGINLIB_EXPORT_CLASS(
   grr_hardware::CanInterface, hardware_interface::SystemInterface)

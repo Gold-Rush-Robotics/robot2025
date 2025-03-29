@@ -1,17 +1,3 @@
-// Copyright 2021 ros2_control Development Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 #ifndef GRR_HARDWARE__CAN_INTERFACE_HPP_
 #define GRR_HARDWARE__CAN_INTERFACE_HPP_
 
@@ -35,7 +21,6 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 
-
 #include "hardware_interface/handle.hpp"
 #include "hardware_interface/hardware_info.hpp"
 #include "hardware_interface/system_interface.hpp"
@@ -51,10 +36,21 @@
 #include "realtime_tools/realtime_buffer.h"
 #include "realtime_tools/realtime_publisher.h"
 
-// using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
-
 namespace grr_hardware
 {
+
+// Structure to hold per-joint configuration parameters.
+struct JointParameters
+{
+  int DIR;
+  int PWM;
+  int SLP;
+  int FLT;
+  int ENC_OUTA;
+  int ENC_OUTB;
+  int CS;
+};
+
 class CanInterface : public hardware_interface::SystemInterface
 {
 public:
@@ -85,22 +81,55 @@ private:
   // Parameters for the DiffBot simulation
   double hw_start_sec_;
   double hw_stop_sec_;
-  int can_socket_; 
+  int can_socket_;
 
   // Store the command for the simulated robot
   rclcpp::Node::SharedPtr node_;
 
   std::vector<double> hw_commands_velocity_;
   std::vector<double> hw_commands_effort_;
+  std::vector<double> hw_commands_positions_;
   std::vector<double> hw_state_positions_;
   std::vector<double> hw_state_velocities_;
   std::vector<std::string> joint_names_;
   std::map<std::string, uint> joint_names_map_;
 
+  std::vector<uint16_t> recorded_serial_numbers_;
+  std::vector<uint16_t> serial_numbers_configured_;
 
+  // New Teensy hardware configuration parameters
+  std::string teensy1_serial_number_;
+  std::vector<std::string> teensy1_joint_names_;
 
+  std::string teensy2_serial_number_;
+  std::vector<std::string> teensy2_joint_names_;
+
+  // Map of joint names to their configuration parameters
+  std::map<std::string, JointParameters> joint_parameters_;
+  std::vector<uint8_t> control_type_;
+
+  enum CAN_IDs
+  {
+    E_STOP = 0x000,
+    HALT = 0x100,
+    RESTART = 0x200,
+    HEARTBEAT = 0x300,
+    QUERY = 0x400,
+    ASSIGN_ID = 0x500,
+    FIRMWARE = 0x600,
+    FATAL = 0x1000,
+    ERROR = 0x2000,
+    MOTOR_COMMAND = 0x3000,
+    SERVO_CONTROL = 0x4000,
+    DIO = 0x5000,
+    SENSORS = 0x6000,
+    WARNINGS = 0x7000,
+    LOGS = 0x8000,
+    MOANING = 0xFFFE,
+    SGA_WARRANTY = 0xFFFF
+  };
 };
 
 }  // namespace grr_hardware
 
-#endif  // GRR_HARDWARE__DIFFBOT_SYSTEM_HPP_
+#endif  // GRR_HARDWARE__CAN_INTERFACE_HPP_
