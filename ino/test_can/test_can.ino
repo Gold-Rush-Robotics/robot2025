@@ -52,6 +52,15 @@ void setupMotorPins() {
   pinMode(EN_OUTB2, INPUT);
   pinMode(CS2, INPUT);
 
+ /* Motor 3 pins 
+  pinMode(DIR2, OUTPUT);
+  pinMode(PWM3, OUTPUT);
+  pinMode(SLP2, OUTPUT);
+  pinMode(FLT2, INPUT);
+  pinMode(EN_OUTA2, INPUT);
+  pinMode(EN_OUTB2, INPUT);
+  pinMode(CS2, INPUT);*/
+
   myservo1.attach(3);
   myservo2.attach(4);
   myservo3.attach(5);
@@ -89,10 +98,13 @@ void setup() {
   digitalWrite(SLP1, HIGH);
   digitalWrite(SLP2, HIGH);
 
+ delay(5000);
+
   // Set both motors to 100 RPM
   // Assuming a mapping of RPM to PWM value (e.g., 100 RPM = 128 PWM)
-  // setMotorSpeed(DIR1, PWM1, SLP1, map(100, -100, 100, -255, 255));
-  // setMotorSpeed(DIR2, PWM2, SLP2, map(-100, -100, 100, -255, 255));
+  setMotorSpeed(DIR1, PWM1, SLP1, map(100, -100, 100, -255, 255));
+  setMotorSpeed(DIR2, PWM2, SLP2, map(-100, -100, 100, -255, 255));
+  //setMotoSpeed(37, 36, map(100, );
 }
 //2 left bin grabber 87
 void loop() {
