@@ -13,7 +13,7 @@ def generate_launch_description():
     description_pkg_path = os.path.join(get_package_share_directory('grr_description'))
     config_pkg_path = os.path.join(get_package_share_directory('grr_bringup'))
     joystick_file = os.path.join(config_pkg_path, 'config', 'xbox-holonomic.config.yaml')
-    xacro_file = os.path.join(description_pkg_path, 'urdf', 'robots','bloodstone.urdf.xacro')
+    xacro_file = os.path.join(description_pkg_path, 'urdf', 'robots','grreg.urdf.xacro')
     controllers_file = os.path.join(config_pkg_path, 'config', 'controllers.yaml')
     rviz_file = os.path.join(config_pkg_path, 'config', 'config.rviz')
     robot_description_config = xacro.process_file(xacro_file)
@@ -118,6 +118,6 @@ def generate_launch_description():
         mecanum_drive_controller_delay,
         effort_controllers_spawner,
         # rviz2_delay,
-        # joy,
-        # joy_teleop
+        joy,
+        joy_teleop
     ])
