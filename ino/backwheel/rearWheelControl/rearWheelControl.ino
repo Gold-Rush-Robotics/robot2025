@@ -66,14 +66,17 @@ void setup() {
   digitalWrite(SLP2, HIGH);
 
   delay(60000);
-
-  setMotorSpeed(DIR1, PWM1, SLP1, 50);
+  
   setMotorSpeed(DIR2, PWM2, SLP2, 50);
+  setMotorSpeed(DIR1, PWM1, SLP1, -50);
+  
   delay(2000);
+  
   setMotorSpeed(DIR1, PWM1, SLP1, 0);
   setMotorSpeed(DIR2, PWM2, SLP2, 0);
   delay(2000);
   setMotorSpeed(DIR1, PWM1, SLP1, -50);
+  delay(10);
   setMotorSpeed(DIR2, PWM2, SLP2, 50);
   delay(5000);
   setMotorSpeed(DIR1, PWM1, SLP1, 0);
@@ -94,20 +97,4 @@ void loop() {
   // Assuming a mapping of RPM to PWM value (e.g., 100 RPM = 128 PWM)
   // setMotorSpeed(DIR1, PWM1, SLP1, map(100, -100, 100, -255, 255));
   // setMotorSpeed(DIR2, PWM2, SLP2, map(-100, -100, 100, -255, 255));
-}
-//2 left bin grabber 87
-void loop() {
-
-
-
-  // Set both motors to 100 RPM
-  // Assuming a mapping of RPM to PWM value (e.g., 100 RPM = 128 PWM)
-  // setMotorSpeed(DIR1, PWM1, SLP1, map(100, -100, 100, -255, 255));
-  // setMotorSpeed(DIR2, PWM2, SLP2, map(-100, -100, 100, -255, 255));
-}
-//2 left bin grabber 87
-void loop() {
-
-
-
 }
